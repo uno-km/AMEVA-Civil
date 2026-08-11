@@ -1,6 +1,5 @@
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import './LoadingOverlay.css'; // Let's use inline styles instead to be clean
 
 export const LoadingOverlay: React.FC<{ isVisible: boolean; message?: string }> = ({ isVisible, message }) => {
   if (!isVisible) return null;
