@@ -8,13 +8,15 @@ import { ReportViewer } from './components/report/ReportViewer';
 import { LoadingOverlay } from './components/ui/LoadingOverlay';
 import { LoadWizard } from './components/ui/LoadWizard';
 import { AIAssistant } from './components/assistant/AIAssistant';
+import { TimeHistoryWizard } from './components/ui/TimeHistoryWizard';
+import { OptimizerModal } from './components/ui/OptimizerModal';
+import { DXFManagerModal } from './components/ui/DXFManagerModal';
+import { WebGPUInspectorModal } from './components/ui/WebGPUInspectorModal';
 import { Fem3DEngine } from './engine/fem3d';
 import { useProjectStore } from './store/projectStore';
 import { createPortalFrameSample } from './data/samples';
-import { Play, RotateCcw, Box, Table, FileText, Zap, Sparkles, Globe, Download, Upload, Cpu } from 'lucide-react';
+import { Play, RotateCcw, Box, Table, FileText, Zap, Sparkles, Globe, Download, Upload, Cpu, Activity } from 'lucide-react';
 import { translations } from './utils/i18n';
-import { exportToDXF, importFromDXF } from './utils/dxfUtils';
-import { optimizeStructureSections } from './engine/optimizer';
 import { webGPUAccelerator } from './engine/webgpuSolver';
 import './index.css';
 
@@ -25,6 +27,12 @@ function App() {
   const [isSolving, setIsSolving] = useState(false);
   const [showLoadWizard, setShowLoadWizard] = useState(false);
   const [showAIAssistant, setShowAIAssistant] = useState(false);
+
+  // Phases 17-20 Modals State
+  const [showTimeHistoryWizard, setShowTimeHistoryWizard] = useState(false);
+  const [showOptimizerModal, setShowOptimizerModal] = useState(false);
+  const [showDXFModal, setShowDXFModal] = useState(false);
+  const [showWebGPUModal, setShowWebGPUModal] = useState(false);
 
   const handleSolve = () => {
     if (Object.keys(nodes).length === 0) {
@@ -53,50 +61,6 @@ function App() {
     useProjectStore.setState({ ...sampleData, results: null });
   };
 
-  const handleExportDXF = () => {
-    const state = useProjectStore.getState();
-    const dxfString = exportToDXF(state);
-    const blob = new Blob([dxfString], { type: 'application/dxf' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'AMEVA_Model.dxf';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleImportDXF = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const text = event.target?.result as string;
-      if (text) {
-        const { nodes: newNodes, elements: newElements } = importFromDXF(text);
-        useProjectStore.setState({
-          nodes: { ...useProjectStore.getState().nodes, ...newNodes },
-          elements: { ...useProjectStore.getState().elements, ...newElements },
-          results: null
-        });
-        alert(language === 'ko' ? `DXF 불러오기 완료: 절점 ${Object.keys(newNodes).length}개, 부재 ${Object.keys(newElements).length}개` : `Imported ${Object.keys(newNodes).length} nodes, ${Object.keys(newElements).length} elements from DXF.`);
-      }
-    };
-    reader.readAsText(file);
-  };
-
-  const handleOptimize = () => {
-    const state = useProjectStore.getState();
-    try {
-      const { updatedSections, updatedElements, reports } = optimizeStructureSections(state);
-      useProjectStore.setState({ sections: updatedSections, elements: updatedElements, results: null });
-      const summary = reports.map(r => `Element ${r.elementId.substring(0, 6)}: ${r.currentSectionName} -> ${r.recommendedSection.name} (Savings: ${r.weightSavingsPercent}%)`).join('\n');
-      alert(language === 'ko' ? `🤖 AI 단면 자동 최적화 완료!\n\n${summary}\n\n최적화된 단면으로 재해석을 수행합니다.` : `AI Section Optimization Complete!\n\n${summary}`);
-      handleSolve();
-    } catch (err: any) {
-      alert(err.message || "Optimization failed. Run solver first.");
-    }
-  };
-
   return (
     <div className="app-container">
       {/* Top Toolbar */}
@@ -104,7 +68,10 @@ function App() {
         <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
           <div style={{ fontWeight: 900, fontSize: '1.4rem', color: '#fff', letterSpacing: '-0.5px', textShadow: '0 0 10px rgba(255,255,255,0.3)', display: 'flex', alignItems: 'center', gap: '8px' }}>
             AMEVA<span style={{ color: 'var(--accent)' }}>Civil</span>
-            <span style={{ fontSize: '0.65rem', background: webGPUAccelerator.getIsSupported() ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.1)', color: webGPUAccelerator.getIsSupported() ? '#10b981' : '#9ca3af', border: webGPUAccelerator.getIsSupported() ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '2px 8px', fontWeight: 600 }}>
+            <span 
+              onClick={() => setShowWebGPUModal(true)}
+              style={{ cursor: 'pointer', fontSize: '0.65rem', background: webGPUAccelerator.getIsSupported() ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.1)', color: webGPUAccelerator.getIsSupported() ? '#10b981' : '#9ca3af', border: webGPUAccelerator.getIsSupported() ? '1px solid rgba(16,185,129,0.4)' : '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', padding: '2px 8px', fontWeight: 600 }}
+            >
               <Cpu size={10} style={{ display: 'inline', marginRight: '4px' }} />
               {webGPUAccelerator.getIsSupported() ? 'WebGPU Accelerated' : 'WASM CPU Mode'}
             </span>
@@ -141,17 +108,18 @@ function App() {
             <Globe size={16} /> {language === 'ko' ? 'ENG' : '한글'}
           </button>
           
-          {/* Phase 19 DXF Export/Import */}
-          <label className="btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Upload size={16} /> DXF Import
-            <input type="file" accept=".dxf" onChange={handleImportDXF} style={{ display: 'none' }} />
-          </label>
-          <button className="btn-secondary" onClick={handleExportDXF}>
-            <Download size={16} /> DXF Export
+          {/* Phase 17 Time History Trigger */}
+          <button className="btn-secondary" onClick={() => setShowTimeHistoryWizard(true)} style={{ color: '#38bdf8', borderColor: 'rgba(56, 189, 248, 0.5)', background: 'rgba(56, 189, 248, 0.1)' }}>
+            <Activity size={16} /> {language === 'ko' ? '지진파 시간이력' : 'Time History'}
+          </button>
+          
+          {/* Phase 19 DXF Export/Import Modal Trigger */}
+          <button className="btn-secondary" onClick={() => setShowDXFModal(true)}>
+            <Download size={16} /> CAD / DXF
           </button>
 
-          {/* Phase 18 AI Optimizer */}
-          <button className="btn-secondary" onClick={handleOptimize} style={{ color: '#c4b5fd', borderColor: 'rgba(139, 92, 246, 0.5)', background: 'rgba(139, 92, 246, 0.1)' }}>
+          {/* Phase 18 AI Optimizer Modal Trigger */}
+          <button className="btn-secondary" onClick={() => setShowOptimizerModal(true)} style={{ color: '#c4b5fd', borderColor: 'rgba(139, 92, 246, 0.5)', background: 'rgba(139, 92, 246, 0.1)' }}>
             <Sparkles size={16} /> {language === 'ko' ? 'AI 단면 최적화' : 'Optimize Sections'}
           </button>
 
@@ -173,18 +141,26 @@ function App() {
       <div className="main-layout" style={{ display: 'flex', height: 'calc(100vh - 52px)', position: 'relative' }}>
         <SidebarLeft />
         
-        <main className="main-content" style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
-          {viewMode === '3d' ? <Canvas3DViewer /> : viewMode === 'spreadsheet' ? <SpreadsheetEditor /> : <ReportViewer />}
-          
-          <BottomPanel />
+        <main className="center-viewport" style={{ flex: 1, position: 'relative', overflow: 'hidden' }}>
+          {viewMode === '3d' && <Canvas3DViewer />}
+          {viewMode === 'spreadsheet' && <SpreadsheetEditor />}
+          {viewMode === 'report' && <ReportViewer />}
         </main>
 
-        <PropertyEditor />
+        {viewMode === '3d' && <PropertyEditor />}
       </div>
 
-      <LoadingOverlay isVisible={isSolving} />
+      <BottomPanel />
+
+      <LoadingOverlay isVisible={isSolving} message="Executing 3D FEM Matrix Solver Engine..." />
       <LoadWizard isOpen={showLoadWizard} onClose={() => setShowLoadWizard(false)} />
       <AIAssistant isOpen={showAIAssistant} onClose={() => setShowAIAssistant(false)} />
+
+      {/* Phases 17-20 Modals */}
+      <TimeHistoryWizard isOpen={showTimeHistoryWizard} onClose={() => setShowTimeHistoryWizard(false)} />
+      <OptimizerModal isOpen={showOptimizerModal} onClose={() => setShowOptimizerModal(false)} />
+      <DXFManagerModal isOpen={showDXFModal} onClose={() => setShowDXFModal(false)} />
+      <WebGPUInspectorModal isOpen={showWebGPUModal} onClose={() => setShowWebGPUModal(false)} />
     </div>
   );
 }
