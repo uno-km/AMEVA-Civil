@@ -1,0 +1,91 @@
+/* PrintStyles.css - A4 Printing rules */
+
+@media print {
+  /* Hide UI elements that shouldn't be printed */
+  .no-print,
+  .top-toolbar,
+  .sidebar-left,
+  .bottom-panel,
+  .property-editor,
+  .view-toggles {
+    display: none !important;
+  }
+
+  /* Reset layout for printing */
+  body, html {
+    background: #ffffff !important;
+    color: #000000 !important;
+    height: auto !important;
+    width: 100% !important;
+    margin: 0;
+    padding: 0;
+    overflow: visible !important;
+  }
+  
+  #root, .app-container, .main-layout, .main-content {
+    display: block !important;
+    height: auto !important;
+    overflow: visible !important;
+    position: static !important;
+    width: 100% !important;
+    background: #ffffff !important;
+  }
+
+  /* Ensure the report viewer takes the whole page */
+  .report-viewer {
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    overflow: visible !important;
+  }
+
+  /* Page breaks */
+  .page-break {
+    page-break-before: always;
+  }
+  
+  .page-break-after {
+    page-break-after: always;
+  }
+
+  .avoid-page-break {
+    page-break-inside: avoid;
+  }
+
+  /* Table styles for printing */
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 20px;
+    font-size: 10pt;
+  }
+  
+  th, td {
+    border: 1px solid #ddd;
+    padding: 6px;
+    text-align: left;
+    color: #000;
+  }
+  
+  th {
+    background-color: #f2f2f2 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    font-weight: bold;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    color: #000;
+    page-break-after: avoid;
+  }
+  
+  /* @page setting for A4 */
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+}
