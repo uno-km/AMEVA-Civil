@@ -4,8 +4,10 @@ import { Bot, Send, X, Cpu, CheckCircle2, Loader2, Sparkles, AlertTriangle } fro
 import { useProjectStore } from '../../store/projectStore';
 
 const MODELS = [
-  { id: 'Llama-3.2-3B-Instruct-q4f16_1-MLC', name: 'Llama 3.2 3B (Fast & Light)' },
-  { id: 'Llama-3.1-8B-Instruct-q4f32_1-MLC', name: 'Llama 3.1 8B (High Performance)' }
+  { id: 'Llama-3.2-1B-Instruct-q4f32_1-MLC', name: 'Llama 3.2 1B (Ultra Fast - Universal WebGPU)' },
+  { id: 'Llama-3.2-3B-Instruct-q4f32_1-MLC', name: 'Llama 3.2 3B (Standard - Universal WebGPU)' },
+  { id: 'Llama-3.1-8B-Instruct-q4f32_1-MLC', name: 'Llama 3.1 8B (High Performance - Universal WebGPU)' },
+  { id: 'Qwen2.5-3B-Instruct-q4f32_1-MLC', name: 'Qwen 2.5 3B (High Precision - Universal WebGPU)' }
 ];
 
 export const AIAssistant: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
