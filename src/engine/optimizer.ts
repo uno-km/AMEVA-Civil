@@ -1,5 +1,5 @@
 import type { ProjectState, ID, Section } from '../types/models';
-import { KS_H_BEAMS, StandardSection } from '../data/steelSections';
+import { KS_H_BEAMS, type StandardSection } from '../data/steelSections';
 import { calculateSectionProperties } from '../utils/sectionProperties';
 
 export interface OptimizationReport {
