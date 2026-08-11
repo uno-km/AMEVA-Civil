@@ -1022,6 +1022,8 @@ export class Fem3DEngine {
         } catch (err) {
           console.warn("Eigenvalue analysis skipped or failed:", err);
         }
+      }
+
       // Phase 17: Time History Analysis (Newmark-Beta Method)
       if (this.state.analysisSettings.method === 'time-history') {
         const thSettings = this.state.analysisSettings.timeHistory || {
