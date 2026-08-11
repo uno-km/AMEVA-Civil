@@ -1022,6 +1022,99 @@ export class Fem3DEngine {
         } catch (err) {
           console.warn("Eigenvalue analysis skipped or failed:", err);
         }
+      // Phase 17: Time History Analysis (Newmark-Beta Method)
+      if (this.state.analysisSettings.method === 'time-history') {
+        const thSettings = this.state.analysisSettings.timeHistory || {
+          dt: 0.02,
+          totalTime: 5.0,
+          dampingRatio: 0.05,
+          functionId: '',
+          direction: 'X'
+        };
+
+        const dt = thSettings.dt || 0.02;
+        const totalTime = thSettings.totalTime || 5.0;
+        const numTimeSteps = Math.min(300, Math.ceil(totalTime / dt));
+        const thFunc = this.state.timeHistoryFunctions[thSettings.functionId];
+
+        const getGroundAccel = (t: number) => {
+          if (!thFunc || !thFunc.points || thFunc.points.length === 0) {
+            return 0.5 * Math.sin(2 * Math.PI * 2 * t) * Math.exp(-0.5 * t);
+          }
+          const pts = thFunc.points;
+          if (t <= pts[0].t) return pts[0].v;
+          if (t >= pts[pts.length - 1].t) return pts[pts.length - 1].v;
+          for (let i = 0; i < pts.length - 1; i++) {
+            if (t >= pts[i].t && t <= pts[i + 1].t) {
+              const alpha = (t - pts[i].t) / (pts[i + 1].t - pts[i].t);
+              return pts[i].v + alpha * (pts[i + 1].v - pts[i].v);
+            }
+          }
+          return 0;
+        };
+
+        const timeHistoryResults: { time: number; displacements: Record<string, DisplacementResult> }[] = [];
+        
+        const gamma = 0.5;
+        const beta = 0.25;
+
+        const a0 = 1 / (beta * dt * dt);
+        const a1 = gamma / (beta * dt);
+        const alpha_r = 2 * thSettings.dampingRatio * 5.0;
+        const beta_r = (2 * thSettings.dampingRatio) / 5.0;
+
+        const dirOffset = thSettings.direction === 'Y' ? 1 : (thSettings.direction === 'Z' ? 2 : 0);
+
+        for (let step = 0; step <= numTimeSteps; step++) {
+          const t = step * dt;
+          const ag = getGroundAccel(t);
+
+          const P_eff = math.zeros(numDofs, 1) as math.Matrix;
+          for (const nodeKey of Object.keys(this.state.nodes)) {
+            const idx = dofMap[nodeKey];
+            if (idx !== undefined) {
+              const nodeMass = M ? M.get([idx + dirOffset, 0]) : 1.0;
+              P_eff.set([idx + dirOffset, 0], -nodeMass * ag);
+            }
+          }
+
+          let K_hat = math.clone(K_elastic_global || K_elastic) as math.Matrix;
+          for (let i = 0; i < numDofs; i++) {
+            const m = M ? M.get([i, 0]) : 0;
+            const k = (K_elastic_global || K_elastic).get([i, i]);
+            const c = alpha_r * m + beta_r * k;
+            K_hat.set([i, i], k + a0 * m + a1 * c);
+          }
+
+          const fixedDOFs = fixedDOFs_global || new Set<number>();
+          for (const idx of fixedDOFs) {
+            for (let i = 0; i < numDofs; i++) {
+              K_hat.set([idx, i], 0);
+              K_hat.set([i, idx], 0);
+            }
+            K_hat.set([idx, idx], 1);
+            P_eff.set([idx, 0], 0);
+          }
+
+          const U_next = math.lusolve(K_hat, P_eff) as math.Matrix;
+
+          const stepDisp: Record<string, DisplacementResult> = {};
+          for (const id of Object.keys(this.state.nodes)) {
+            const idx = dofMap[id];
+            stepDisp[id] = {
+              dx: U_next.get([idx, 0]),
+              dy: U_next.get([idx + 1, 0]),
+              dz: U_next.get([idx + 2, 0]),
+              rx: U_next.get([idx + 3, 0]),
+              ry: U_next.get([idx + 4, 0]),
+              rz: U_next.get([idx + 5, 0]),
+            };
+          }
+
+          timeHistoryResults.push({ time: Math.round(t * 1000) / 1000, displacements: stepDisp });
+        }
+
+        result.timeHistoryResults = timeHistoryResults;
       }
 
       result.loadCombinations = loadCombinations;

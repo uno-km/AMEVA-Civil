@@ -182,9 +182,11 @@ export const Canvas3DViewer: React.FC = () => {
 
   const currentResultMap = activeResultId.startsWith('mode-')
     ? { displacements: activeResult?.eigenvalues?.modeShapes[parseInt(activeResultId.split('-')[1])] || {} }
-    : (activeResult?.loadCombinations && activeResult.loadCombinations[activeResultId]) 
-      ? activeResult.loadCombinations[activeResultId] 
-      : (activeResult?.loadCases ? activeResult.loadCases[activeResultId] : null);
+    : activeResultId.startsWith('th-')
+      ? { displacements: activeResult?.timeHistoryResults?.[parseInt(activeResultId.split('-')[1])]?.displacements || {} }
+      : (activeResult?.loadCombinations && activeResult.loadCombinations[activeResultId]) 
+        ? activeResult.loadCombinations[activeResultId] 
+        : (activeResult?.loadCases ? activeResult.loadCases[activeResultId] : null);
 
   const handleNodeClick = (e: any, id: string) => {
     e.stopPropagation();
@@ -401,6 +403,32 @@ export const Canvas3DViewer: React.FC = () => {
               </label>
             </div>
             
+            {activeResult.timeHistoryResults && activeResult.timeHistoryResults.length > 0 && (
+              <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
+                <label style={{ fontSize: '0.8rem', color: '#38bdf8', fontWeight: 600 }}>⏱ Time History Playback</label>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginTop: '6px' }}>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max={activeResult.timeHistoryResults.length - 1} 
+                    onChange={e => {
+                      const stepIdx = parseInt(e.target.value);
+                      setActiveResultId(`th-${stepIdx}`);
+                      setShowDeformed(true);
+                    }}
+                    style={{ width: '100%', accentColor: '#38bdf8', cursor: 'pointer' }}
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                    <span>t = 0.00s</span>
+                    <span style={{ color: '#38bdf8', fontWeight: 700 }}>
+                      {activeResult.timeHistoryResults[parseInt(activeResultId.replace('th-', '')) || 0]?.time.toFixed(2)}s
+                    </span>
+                    <span>{activeResult.timeHistoryResults[activeResult.timeHistoryResults.length - 1].time.toFixed(2)}s</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {activeResult.eigenvalues && activeResult.eigenvalues.modeShapes.length > 0 && (
               <div style={{ marginTop: '12px', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: '12px' }}>
                 <label style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 600 }}>Mode Shape</label>
