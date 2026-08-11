@@ -241,7 +241,19 @@ export const Canvas3DViewer: React.FC = () => {
           position={[0, -0.5, 0]}
         />
         
-        <OrbitControls makeDefault />
+        <OrbitControls 
+          makeDefault 
+          enablePan={true}
+          panSpeed={1.5}
+          zoomSpeed={1.2}
+          enableDamping={true}
+          dampingFactor={0.05}
+          mouseButtons={{
+            LEFT: THREE.MOUSE.ROTATE,
+            MIDDLE: THREE.MOUSE.PAN,
+            RIGHT: THREE.MOUSE.PAN
+          }}
+        />
 
         {/* Draw Original Elements */}
         {Object.values(elements).map(el => {
@@ -343,6 +355,13 @@ export const Canvas3DViewer: React.FC = () => {
           })
         )}
       </Canvas>
+
+      {/* Camera Control Helper */}
+      <div style={{ position: 'absolute', bottom: 20, left: 20, background: 'rgba(17, 24, 39, 0.7)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.1)', backdropFilter: 'blur(4px)', color: 'var(--text-secondary)', fontSize: '0.75rem', pointerEvents: 'none', display: 'flex', gap: '16px' }}>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>🖱️ <span style={{ color: 'var(--text-primary)' }}>좌클릭</span> 회전</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>🖐️ <span style={{ color: 'var(--text-primary)' }}>우클릭/휠클릭</span> 이동 (Pan)</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>🔍 <span style={{ color: 'var(--text-primary)' }}>휠스크롤</span> 확대/축소</span>
+      </div>
 
       {/* 3D UI Overlay Toolbar */}
       <div style={{ position: 'absolute', top: 20, right: 20, display: 'flex', flexDirection: 'column', gap: '16px', background: 'var(--bg-panel)', padding: '20px', borderRadius: '12px', border: '1px solid var(--bg-border)', backdropFilter: 'var(--glass-blur)', width: '260px', boxShadow: 'var(--glass-shadow)' }}>
