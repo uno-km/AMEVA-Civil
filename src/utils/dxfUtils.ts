@@ -1,4 +1,4 @@
-import { ProjectState, Node, Element, ID } from '../types/models';
+import type { ProjectState, Node, Element, ID } from '../types/models';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
