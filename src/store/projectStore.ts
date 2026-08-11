@@ -31,12 +31,14 @@ interface ProjectActions {
   
   setSelectedItems: (items: SelectedItem[]) => void;
   setCaptureImage: (dataUrl: string) => void;
+  setLanguage: (lang: 'ko' | 'en') => void;
 }
 
 const initialState: ProjectState = {
   id: uuidv4(),
   name: 'New Project',
   unit: { length: 'm', force: 'kN' },
+  language: 'ko',
   nodes: {},
   elements: {},
   materials: {},
@@ -218,6 +220,10 @@ export const useProjectStore = create<ProjectState & ProjectActions>()(
       
       setNodes: (nodes) => set({ nodes }),
       setElements: (elements) => set({ elements }),
+
+      setSelectedItems: (selectedItems) => set({ selectedItems }),
+      setCaptureImage: (captureImage) => set({ captureImage }),
+      setLanguage: (language) => set({ language }),
 
       loadProject: (projectState) => set(projectState)
     }),

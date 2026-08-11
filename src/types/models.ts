@@ -204,5 +204,6 @@ export interface ProjectState {
   timeHistoryFunctions: Record<ID, TimeHistoryFunction>;
   results: AnalysisResult | null;
   selectedItems: SelectedItem[];
+  language?: 'ko' | 'en';
   captureImage?: string;
 }
