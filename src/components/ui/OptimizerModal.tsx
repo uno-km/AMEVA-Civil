@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useProjectStore } from '../../store/projectStore';
 import { Sparkles, CheckCircle2, TrendingDown, X } from 'lucide-react';
-import { optimizeStructureSections, OptimizationReport } from '../../engine/optimizer';
+import { optimizeStructureSections, type OptimizationReport } from '../../engine/optimizer';
 
 export const OptimizerModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
   const { results, language = 'ko' } = useProjectStore();

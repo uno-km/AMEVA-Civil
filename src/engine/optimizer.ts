@@ -82,7 +82,7 @@ export function optimizeStructureSections(state: ProjectState): {
       updatedSections[newSecId] = {
         id: newSecId,
         name: bestCandidate.name,
-        type: 'I-shape',
+        type: 'I',
         area: bestCandidate.area,
         iy: bestCandidate.iy,
         iz: bestCandidate.iz,
@@ -90,8 +90,8 @@ export function optimizeStructureSections(state: ProjectState): {
         dimensions: {
           b: bestCandidate.b,
           h: bestCandidate.h,
-          tw: bestCandidate.tw,
-          tf: bestCandidate.tf
+          t1: bestCandidate.tw,
+          t2: bestCandidate.tf
         }
       };
     }

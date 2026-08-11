@@ -900,13 +900,14 @@ export class Fem3DEngine {
       }
 
       let eigenvalues;
+      let M: math.Matrix | null = null;
       if (K_elastic_global && fixedDOFs_global) {
         const K_elastic = K_elastic_global;
         const fixedDOFs = fixedDOFs_global;
 
         // Phase 13: Eigenvalue Analysis (Lumped Mass Matrix)
         // Assemble Mass Matrix M
-        let M = math.zeros(numDofs, 1) as math.Matrix; // Lumped mass is diagonal, store as vector for efficiency
+        M = math.zeros(numDofs, 1) as math.Matrix; // Lumped mass is diagonal, store as vector for efficiency
         
         for (const el of Object.values(this.state.elements)) {
           const mat = this.state.materials[el.materialId];
@@ -1080,10 +1081,11 @@ export class Fem3DEngine {
             }
           }
 
-          let K_hat = math.clone(K_elastic_global || K_elastic) as math.Matrix;
+          const K_ref = K_elastic_global || math.zeros(numDofs, numDofs);
+          let K_hat = math.clone(K_ref) as math.Matrix;
           for (let i = 0; i < numDofs; i++) {
             const m = M ? M.get([i, 0]) : 0;
-            const k = (K_elastic_global || K_elastic).get([i, i]);
+            const k = K_ref.get([i, i]);
             const c = alpha_r * m + beta_r * k;
             K_hat.set([i, i], k + a0 * m + a1 * c);
           }
