@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { CreateMLCEngine, MLCEngine, InitProgressReport } from '@mlc-ai/web-llm';
+import { CreateMLCEngine, MLCEngine, type InitProgressReport } from '@mlc-ai/web-llm';
 import { Bot, Send, X, Cpu, CheckCircle2, Loader2, Sparkles, AlertTriangle } from 'lucide-react';
 import { useProjectStore } from '../../store/projectStore';
 
