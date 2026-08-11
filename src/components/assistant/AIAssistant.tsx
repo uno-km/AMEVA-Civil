@@ -171,7 +171,7 @@ Respond directly, professionally, and concisely in the same language as the user
         
         {loadingState === 'loading' && (
           <div style={{ marginTop: '8px', width: '100%', height: '4px', backgroundColor: 'var(--bg-input)', borderRadius: '2px', overflow: 'hidden' }}>
-            <div style={{ width: \`\${progressPercent}%\`, height: '100%', backgroundColor: 'var(--accent)', transition: 'width 0.3s ease' }} />
+            <div style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: 'var(--accent)', transition: 'width 0.3s ease' }} />
           </div>
         )}
         {loadingState === 'loading' && progressText && (
